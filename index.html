@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" href="css/style.css">
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.11/jquery-ui.min.js"></script>
+
+    <script type="text/javascript"
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCfeBLaFbUOQ4eLlve3SkLkJlKUYqhRSgo&sensor=true">
+    </script>
+      
+    <script type="text/javascript">
+      
+     	function initialize() {
+	        var sensorLatlng = new google.maps.LatLng(70.2560,70.2560);
+	        var mapOptions = {
+	          center:sensorLatlng,
+	          zoom: 17,
+	          mapTypeId: google.maps.MapTypeId.ROADMAP
+	        };
+	        var map = new google.maps.Map(document.getElementById("map-canvas"),
+	            mapOptions);
+	        Marker = new google.maps.Marker({position:sensorLatlng,map:map})
+	        //Enable Map listener
+	        google.maps.event.addListener(map, 'click', function(e) {
+	    		placeMarker(e.latLng, map);
+	  		})
+      }
+    	function placeMarker(position, map) {
+  			var marker = new google.maps.Marker({
+    		position: position,
+    		map: map});
+  		  map.panTo(position);
+		  }
+      google.maps.event.addDomListener(window, 'load', initialize);
+    </script>
+
+    <script type="text/javascript">
+    
+    $( document ).ready(function() {
+      setDate();
+      function setDate(){
+        var date = new Date()
+        day= date.getDate()
+        month = date.getMonth()
+        year = date.getFullYear()
+        $('#date').val(year +'-'+ month +'-'+ day)
+      }
+      //Add date picker
+      $(function() {
+        $( '#date_picker' ).datepicker(
+          {
+            inline: true,  
+            showOtherMonths: true,  
+            dayNamesMin: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+            dateFormat: $.datepicker.W3C,
+            onSelect: function(dateText) {
+              $('#date').val(dateText)
+            }
+          })
+      });
+      //parse dates
+      function parseDate(input){
+        var parts= input.split('-')
+        var return_date = new Date(parts[0], parts[1]-1, parts[2],parts[3])
+
+        return return_date
+      }
+      //get Matrix POST method
+      function getMatrix(){
+        var init_date_val=$('#init_time').val()
+        var end_date_val=$('#end_time').val()
+        var date_parts= $('#date').val().split('-')
+        var data_values={
+          node_1:$('#input_origin').val(), 
+          node_2:$('#input_destination').val(),
+          year:date_parts[0],
+          month:date_parts[1]-1,
+          day:date_parts[2],
+          init_time:init_date_val,
+          end_time:end_date_val
+        }
+        var json_to_send = JSON.stringify(data_values)
+        $.ajax({
+            url:'/API/matrix',
+            type:'POST',
+            dataType:'json',
+            data:json_to_send,
+            contentType:'application/json',
+            cache:false,
+            timeout: 10000,
+            conplete:function(XMLHttpRequest, textStatus, errorThrown){
+              alert('complete status:' + XMLHttpRequest.status + ', status text: ' + XMLHttpRequest.statusText)
+            },
+            success:function(data){
+              $('.result_header_1').text($('#input_origin').val())
+              $('.result_header_2').text($('#input_destination').val())
+              $('#result_data_1').text(data.value_1)
+              $('#result_data_2').text(data.value_2)
+            },
+            error:function(XMLHttpRequest, textStatus, errorThrown){
+            alert('error status:' + XMLHttpRequest.status + ', status text: ' + XMLHttpRequest.statusText)
+            }
+      })
+    }
+    $('#generate_button').click(function(){
+      getMatrix();
+    })
+    });
+    </script>
+
+  </head>
+  <body>
+  	<div id='head'>OD Matrix generation</div>
+    <div id='map-canvas'></div>
+    <div id='options'>Options Space
+    	<div id='options_left'>Left
+    		<input type='text' id='input_origin' style="text-transform: uppercase" placeholder='Input Origin'>
+    		<input type='text' id='input_destination' style="text-transform: uppercase" placeholder='Input Destination' >
+    	</div>
+    	<div id='options_center'>Center
+        <p><input type='text' id ='date' required ></p>
+    		<div id='date_picker' name='date_picker'></div>
+    	<div id='options_rigth'>
+        <p><select id = 'init_time'>
+            <option value='5'selected>5  AM</option>
+            <option value='6'>6  AM</option>
+            <option value='7'>7  AM</option>
+            <option value='8'>8  AM</option>
+            <option value='9'>9  AM</option>
+            <option value='10'>10  AM</option>
+            <option value='11'>11  AM</option>
+            <option value='12'>12  AM</option>
+            <option value='13'>1  PM</option>
+            <option value='14'>2  PM</option>
+            <option value='15'>3  PM</option>
+            <option value='16'>4  PM</option>
+            <option value='17'>5  PM</option>
+            <option value='18'>6  PM</option>
+            <option value='19'>7  PM</option>
+            <option value='20'>8  PM</option>
+            <option value='21'>9  PM</option>
+            <option value='22'>10  PM</option>
+            <option value='23'>11  PM</option>
+            <option value='0'>12  PM</option>
+        </select></p> 
+        <p><select id = 'end_time'>
+           <option value='5'selected>5  AM</option>
+            <option value='6'>6  AM</option>
+            <option value='7'>7  AM</option>
+            <option value='8'>8  AM</option>
+            <option value='9'>9  AM</option>
+            <option value='10'>10  AM</option>
+            <option value='11'>11  AM</option>
+            <option value='12'>12  AM</option>
+            <option value='13'>1  PM</option>
+            <option value='14'>2  PM</option>
+            <option value='15'>3  PM</option>
+            <option value='16'>4  PM</option>
+            <option value='17'>5  PM</option>
+            <option value='18'>6  PM</option>
+            <option value='19'>7  PM</option>
+            <option value='20'>8  PM</option>
+            <option value='21'>9  PM</option>
+            <option value='22'>10  PM</option>
+            <option value='23'>11  PM</option>
+            <option value='0'>12  PM</option>
+         </select></p> 
+      </div>
+      <div id="buttons">
+        <button id='generate_button'>Generate</button>
+      </div>
+      <div id="results">
+        <table>
+          <tr>
+            <td><p>/</p></td>
+            <td><p class='result_header_1'>ESTACION 1</p></td>
+            <td><p class='result_header_2'>ESTACION 2</p></td>
+          </tr>
+          <tr>
+            <td><p class='result_header_1'>ESTACION 1</p></td>
+            <td><p>0</p></td>
+            <td><p id='result_data_1'>0</p></td>
+          </tr>
+          <tr>
+            <td><p class='result_header_2'>ESTACION 1</p></td>
+            <td><p id='result_data_2'>0</p></td>
+            <td><p>0</p></td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </body>
+</html>
